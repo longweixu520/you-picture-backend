@@ -7,6 +7,8 @@ server:
 spring:
   application:
     name: yu-picture-backend
+  profiles:
+    active: local  # 激活 local 环境
   banner:
     charset: UTF-8
     location: classpath:banner.txt
