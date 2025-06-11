@@ -7,13 +7,15 @@ server:
 spring:
   application:
     name: yu-picture-backend
+  banner:
+    charset: UTF-8
+    location: classpath:banner.txt
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/yu_picture
     username: root
     password: 12345678lwx
-
 
 mybatis-plus:
   configuration:
@@ -39,3 +41,4 @@ knife4j:
         api-rule: package
         api-rule-resources:
           - com.yupi.yupicturebackend.controller
+

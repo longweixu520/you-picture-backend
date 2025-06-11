@@ -122,6 +122,18 @@ public class UserController {
         if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+
+        // 先查询要删除的用户
+        User user = userService.getById(deleteRequest.getId());
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+        }
+
+        // 检查要删除的用户是否是admin
+        if (UserConstant.ADMIN_ROLE.equals(user.getUserRole())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "不能删除管理员用户");
+        }
+
         boolean b = userService.removeById(deleteRequest.getId());
         return ResultUtils.success(b);
     }
