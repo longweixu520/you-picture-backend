@@ -68,4 +68,7 @@ public class User {
      */
     @TableLogic
     private Integer isDelete;
+
+    @TableField
+    private static final long SerialVersionUID = 1L;
 }
