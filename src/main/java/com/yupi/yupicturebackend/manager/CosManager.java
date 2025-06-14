@@ -94,7 +94,7 @@ public class CosManager {
                 file);
         // 对图片进行处理（获取基本信息也被视作为一种处理）
         PicOperations picOperations = new PicOperations();
-        // 1 表示返回原图信息
+        // 1表示返回原图信息
         picOperations.setIsPicInfo(1);
         // 构造处理参数
         putObjectRequest.setPicOperations(picOperations);

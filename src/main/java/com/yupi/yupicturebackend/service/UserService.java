@@ -104,6 +104,16 @@ public interface UserService extends IService<User> {
      * @Param [userQueryRequest]
      * @return com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.yupi.yupicturebackend.model.entity.User>
      **/
-
     QueryWrapper<User> getQueryWrapper(UserQueryRequest userQueryRequest);
+
+
+    /**
+     * 是否为管理员
+     *
+     * @param user
+     * @return
+     */
+    boolean isAdmin(User user);
+
+
 }

@@ -18,6 +18,10 @@ spring:
     url: jdbc:mysql://localhost:3306/yu_picture
     username: root
     password: 12345678lwx
+  # Tomcat 服务器默认限制了请求中文件上传的大小,因此需要更改配置，调大允许上传文件的大小
+  servlet:
+    multipart:
+      max-file-size: 10MB
 
 mybatis-plus:
   configuration:
