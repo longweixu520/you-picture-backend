@@ -11,12 +11,10 @@ import com.yupi.yupicturebackend.exception.ErrorCode;
 import com.yupi.yupicturebackend.exception.ThrowUtils;
 import com.yupi.yupicturebackend.manager.CosManager;
 import com.yupi.yupicturebackend.model.constant.UserConstant;
-import com.yupi.yupicturebackend.model.dto.picture.PictureEditRequest;
-import com.yupi.yupicturebackend.model.dto.picture.PictureQueryRequest;
-import com.yupi.yupicturebackend.model.dto.picture.PictureUpdateRequest;
-import com.yupi.yupicturebackend.model.dto.picture.PictureUploadRequest;
+import com.yupi.yupicturebackend.model.dto.picture.*;
 import com.yupi.yupicturebackend.model.entity.Picture;
 import com.yupi.yupicturebackend.model.entity.User;
+import com.yupi.yupicturebackend.model.enums.PictureReviewStatusEnum;
 import com.yupi.yupicturebackend.model.vo.PictureTagCategory;
 import com.yupi.yupicturebackend.model.vo.PictureVO;
 import com.yupi.yupicturebackend.service.PictureService;
@@ -57,7 +55,6 @@ public class PictureController {
      * @permission 仅管理员可操作
      */
     @PostMapping("/upload")
-    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<PictureVO> uploadPicture(
             @RequestPart("file") MultipartFile multipartFile,
             PictureUploadRequest pictureUploadRequest,
@@ -111,7 +108,7 @@ public class PictureController {
      */
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
-    public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest) {
+    public BaseResponse<Boolean> updatePicture(@RequestBody PictureUpdateRequest pictureUpdateRequest, HttpServletRequest request) {
         // 参数校验
         if (pictureUpdateRequest == null || pictureUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数错误：ID不能为空");
@@ -130,6 +127,10 @@ public class PictureController {
         long id = pictureUpdateRequest.getId();
         Picture oldPicture = pictureService.getById(id);
         ThrowUtils.throwif(oldPicture == null, ErrorCode.NOT_FOUND_ERROR, "图片不存在");
+
+        //补充审核参数
+        User loginUser = userService.getLoginUser(request);
+        pictureService.fillReviewParams(picture, loginUser);
 
         // 执行更新操作
         boolean result = pictureService.updateById(picture);
@@ -216,6 +217,9 @@ public class PictureController {
         long size = pictureQueryRequest.getPageSize();
         ThrowUtils.throwif(size > 20, ErrorCode.PARAMS_ERROR, "分页大小不能超过20");
 
+        // 普通用户默认只能查看已过审的数据
+        pictureQueryRequest.setReviewStatus(PictureReviewStatusEnum.PASS.getValue());
+
         // 执行分页查询
         Page<Picture> picturePage = pictureService.page(
                 new Page<>(pictureQueryRequest.getCurrent(), size),
@@ -264,6 +268,9 @@ public class PictureController {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无编辑权限");
         }
 
+        // 补充审核参数
+        pictureService.fillReviewParams(picture, loginUser);
+
         // 执行更新
         boolean result = pictureService.updateById(picture);
         ThrowUtils.throwif(!result, ErrorCode.OPERATION_ERROR, "更新失败");
@@ -289,6 +296,24 @@ public class PictureController {
         pictureTagCategory.setCategoryList(categoryList);
         return ResultUtils.success(pictureTagCategory);
     }
+
+    /**
+     * @Author longweixu
+     * @Description 审核图片的接口
+     * @Date 15:48 2025/6/18
+     * @Param [pictureReviewRequest, request]
+     * @return com.yupi.yupicturebackend.common.BaseResponse<java.lang.Boolean>
+     **/
+    @PostMapping("/review")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Boolean> doPictureReview(@RequestBody PictureReviewRequest pictureReviewRequest,
+                                                 HttpServletRequest request) {
+        ThrowUtils.throwif(pictureReviewRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        pictureService.doPictureReview(pictureReviewRequest, loginUser);
+        return ResultUtils.success(true);
+    }
+
 
 }
 
